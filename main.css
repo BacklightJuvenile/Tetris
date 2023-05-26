@@ -1,0 +1,47 @@
+*{
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+li{
+    list-style: none;
+}
+
+.wrapper{
+    background-color: rgb(62, 202, 27);
+    border:10px solid rgb(34, 211, 235);
+    border-radius: 1%;
+}
+
+.header{
+    background-color: aquamarine;
+    width: 100%;
+    line-height: 50px;
+    text-align: center;
+    font-size: 30px;
+    color: #fff;
+}
+
+.game-area{
+    background-color: blueviolet;
+    width: 100%;
+}
+
+.left{
+    background-color: #fff;
+    float: left;
+}
+.left ul{
+    /* display: flex; */
+}
+.left ul li{
+    float: left;
+    width: 30px;
+    height: 30px;
+    outline: 1px solid black;
+}
+
+.right{
+    background-color: chocolate;
+    float: left;
+}
