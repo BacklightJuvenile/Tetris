@@ -1,3 +1,11 @@
+/*
+
+1 1       1 1 0          0 1 1         0 1 0        0 1 0         0 1 0         0 1 0 0
+1 1       0 1 1          1 1 0         0 1 0        0 1 0         1 1 1         0 1 0 0
+          0 0 0          0 0 0         1 1 0        0 1 1         0 0 0         0 1 0 0
+                                                                                0 1 0 0
+*/
+
 // 地图长宽
 const mapSize = {
     width: 15,
@@ -23,10 +31,49 @@ let n = mapSize.width * mapSize.height;
 // 地图
 let li = [];
 let map = [];
-let shape = [];                         // 形状
-let index = [0, parseInt(mapSize.width / 2) - 2];     // 形状起始位置：(行，列)
-let color = "#f00";                     // 方块颜色
+let shape = [];             // 形状
+let index = [];             // 形状起始位置：(行，列)
+
+//方块
+let color = "#f00";         // 方块颜色
 let backColor = "#fff";
+let shapeSet = [
+    [
+        [1, 1],
+        [1, 1]
+    ],
+    [
+        [1, 1, 0],
+        [0, 1, 1],
+        [0, 0, 0]
+    ],
+    [
+        [0, 1, 1],
+        [1, 1, 0],
+        [0, 0, 0]
+    ],
+    [
+        [0, 1, 0],
+        [0, 1, 0],
+        [1, 1, 0]
+    ],
+    [
+        [0, 1, 0],
+        [0, 1, 0],
+        [0, 1, 1]
+    ],
+    [
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0]
+    ],
+    [
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0]
+    ]
+]
 
 header.style.height = headerHeight;
 header.style.lineHeight = headerHeight;
@@ -52,7 +99,10 @@ for(let i = 0; i < mapSize.height; i ++){
 }
 
 // 创建方块
-createShape_O = () => {
+initIndex = () => {
+    index = [0, parseInt(mapSize.width / 2) - 2];
+}
+createShape_0 = () => {
     shape = [
         [1, 1],
         [1, 1]
@@ -77,42 +127,155 @@ clearPaintShape = () => {
     }
 }
 createShape = () => {    // index
+    console.log("创建一个方块")
+    initIndex();
     let random = parseInt(Math.random() * 7);
-    random = 0;
-    switch(random){
-        case 0:
-            createShape_O();
-        break;
-        default:
-            createShape();
-        break;
-    }
+    shape = shapeSet[random];
     paintShape();
 }
 createShape();
 
-
-// 方块移动
-move = () => {
+judgeDown = () => {
     // 先判断是否还能动
     for(let i = 0; i < shape.length; i ++){
         for(let j = 0; j < shape[i].length; j ++){
             if(shape[i][j]){     //形状有效位置
-                row = index[0] + 1 + i;
+                row = index[0] + i + 1;
                 col = index[1] + j;
-                if(row >= mapSize.height || map[row][col]){    // 是否碰到下面的已存在的形状 
-                    console.log("stop")
-                    clearInterval(clock);
-                    clock = null;
-                    return;
+                if(row > mapSize.height - 1 || map[row][col]){    // 是否碰到下面的已存在的形状 
+                    console.log("stopDown")
+                    return true;
+                } 
+            }
+        }
+    }
+    return false;
+}
+judgeLeft = () => {
+    // 先判断是否还能动
+    for(let i = 0; i < shape.length; i ++){
+        for(let j = 0; j < shape[i].length; j ++){
+            if(shape[i][j]){     //形状有效位置
+                row = index[0] + i;
+                col = index[1] + j - 1;
+                if(col < 0 || map[row][col]){    // 是否碰到下面的已存在的形状 
+                    console.log("stopLeft")
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+judgeRight = () => {
+    // 先判断是否还能动
+    for(let i = 0; i < shape.length; i ++){
+        for(let j = 0; j < shape[i].length; j ++){
+            if(shape[i][j]){     //形状有效位置
+                row = index[0] + i;
+                col = index[1] + j + 1;
+                if(col > mapSize.width - 1 || map[row][col]){    // 是否碰到下面的已存在的形状 
+                    console.log("stopRight")
+                    return true;
                 }    
             }
         }
     }
+    return false;
+}
+
+// 方块移动
+move = () => {
+    console.log(index[0], index[1]);
+    // 先判断下方是否有障碍物
+    if(judgeDown()){    // 有
+        for(let i = 0; i < shape.length; i ++){
+            for(let j = 0; j < shape[i].length; j ++){
+                if(shape[i][j]){
+                    map[index[0] + i][index[1] + j] = true;
+                    li[index[0] + i][index[1] + j].style.backgroundColor = "#ff0";
+                }
+            }
+        }
+        createShape();
+        return;
+    }
     //如果能动，就动
     clearPaintShape();
-    console.log(index[0])
     index[0] = index[0] + 1;
     paintShape();
 }
 clock = setInterval(move, period);
+
+// 旋转
+function rotateShape() {
+    let tR = 0;
+    let tC = 0;
+    let dR = shape.length - 1;
+    let dC = shape[0].length - 1;
+    while(tR < dR) {
+        rotateEdge(tR++, tC++, dR--, dC--);
+    }
+}
+ 
+function rotateEdge(tR, tC, dR, dC) {
+    let times = dC - tC;
+    let temp = 0;
+    for (let i = 0; i !== times; i++) {
+        temp = shape[tR][tC + i];
+        shape[tR][tC+i] = shape[dR-i][tC];
+        shape[dR-i][tC] = shape[dR][dC-i];
+        shape[dR][dC-i] = shape[tR+i][dC];
+        shape[tR+i][dC] = temp;
+    }
+}
+
+// 键盘监听
+document.addEventListener("keydown", function(e){
+    // console.log(e)
+    if(e.keyCode == 37){     // 左
+        if(judgeLeft()){
+            return;
+        }else{
+            clearPaintShape();
+            index[1] --;
+            paintShape();
+        }
+        return;
+    }
+    if(e.keyCode == 39){     // 右
+        if(judgeRight()){
+            return;
+        }else{
+            clearPaintShape();
+            index[1] ++;
+            paintShape();
+        }
+        return;
+    }
+    if(e.keyCode == 40){     // 下
+        if(judgeDown()){
+            for(let i = 0; i < shape.length; i ++){
+                for(let j = 0; j < shape[i].length; j ++){
+                    if(shape[i][j]){
+                        map[index[0] + i][index[1] + j] = true;
+                        li[index[0] + i][index[1] + j].style.backgroundColor = "#ff0";
+                    }
+                }
+            }
+            createShape();
+            return;
+        }else{
+            clearPaintShape();
+            index[0] ++;
+            paintShape();
+        }
+        return;
+    }
+    if(e.keyCode == 84){     // 旋转
+        console.log("旋转")
+        clearPaintShape();
+        rotateShape();
+        paintShape();
+    }
+}, false);
