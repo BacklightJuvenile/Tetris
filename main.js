@@ -1,11 +1,3 @@
-/*
-
-1 1       1 1 0          0 1 1         0 1 0        0 1 0         0 1 0         0 1 0 0
-1 1       0 1 1          1 1 0         0 1 0        0 1 0         1 1 1         0 1 0 0
-          0 0 0          0 0 0         1 1 0        0 1 1         0 0 0         0 1 0 0
-                                                                                0 1 0 0
-*/
-
 // 地图长宽
 const mapSize = {
     width: 15,
@@ -25,11 +17,14 @@ let wrapper = document.getElementsByClassName("wrapper")[0];
 let leftArea = document.getElementsByClassName("left")[0];
 let rightArea = document.getElementsByClassName("right")[0];
 let header = document.getElementsByClassName("header")[0];
-let ul = document.createElement("ul");
+let ul_map = document.createElement("ul");
+let next_shape = document.getElementsByClassName("next-shape")[0];
+let ul_next = document.createElement("ul");
+let score_container = document.getElementsByClassName("get-score")[0];
 let n = mapSize.width * mapSize.height;
 
 // 地图
-let li = [];
+let map_li = [];
 let map = [];
 let shape = [];             // 形状
 let index = [];             // 形状起始位置：(行，列)
@@ -37,6 +32,8 @@ let index = [];             // 形状起始位置：(行，列)
 //方块
 let color = "#f00";         // 方块颜色
 let backColor = "#fff";
+let nextShape = 0;          // 下一个方块形状
+let shape_li = [];
 let shapeSet = [
     [
         [1, 1],
@@ -81,61 +78,142 @@ wrapper.style.width = 300 + (mapSize.width * parseInt(size)) + "px";
 wrapper.style.height = parseInt(headerHeight) + (mapSize.height * parseInt(size))+ "px";
 leftArea.style.width = (mapSize.width * parseInt(size)) + "px";
 leftArea.style.height = (mapSize.height * parseInt(size)) + "px";
+leftArea.appendChild(ul_map);
 rightArea.style.width = "300px";
 rightArea.style.height = (mapSize.height * parseInt(size)) + "px";
-leftArea.appendChild(ul);
-for(let i = 0; i < mapSize.height; i ++){
-    li[i] = new Array(mapSize.width);
+ul_next.style.width = (4 * parseInt(size)) + "px";
+ul_next.style.height = (4 * parseInt(size)) + "px";
+next_shape.appendChild(ul_next);
+for(let i = 0; i < mapSize.height; i ++){          //创建地图
+    map_li[i] = new Array(mapSize.width);
     map[i] = new Array(mapSize.width);
     for(let j = 0; j < mapSize.width; j ++){
-        li[i][j] = document.createElement('li');
+        map_li[i][j] = document.createElement('li');
         map[i][j] = false;
-        li[i][j].style.fontSize = "2px";
-        li[i][j].innerText = (i + "-" + j);
-        li[i][j].style.width = size;
-        li[i][j].style.height = size;
-        ul.appendChild(li[i][j])
+        // map_li[i][j].style.fontSize = "2px";
+        // map_li[i][j].innerText = (i + "-" + j);
+        map_li[i][j].style.width = size;
+        map_li[i][j].style.height = size;
+        ul_map.appendChild(map_li[i][j])
+    }
+}
+for(let i = 0; i < 4; i ++){         //创建下一个形状
+    shape_li[i] = new Array(4);
+    for(let j = 0; j < 4; j ++){
+        shape_li[i][j] = document.createElement('li');
+        shape_li[i][j].style.width = size;
+        shape_li[i][j].style.height = size;
+        ul_next.appendChild(shape_li[i][j])
     }
 }
 
+// 展示下一个方块
+function showNextShape(){
+    let temp_shape = shapeSet[nextShape];
+    for(let i = 0; i < temp_shape.length; i ++){
+        for(let j = 0; j < temp_shape[i].length; j ++){
+            if(temp_shape[i][j]){
+                shape_li[i][j].style.backgroundColor = "#ff0";
+            }
+        }
+    }
+}
+function clearShowNextShape(){
+    for(let i = 0; i < 4; i ++){
+        for(let j = 0; j < 4; j ++){
+            shape_li[i][j].style.backgroundColor = "chocolate";
+        }
+    }
+}
+
+// 获取得分
+function getScore(s = 1){
+    score += s;
+    score_container.innerText = score;
+}
+
 // 创建方块
-initIndex = () => {
+let initIndex = () => {
     index = [0, parseInt(mapSize.width / 2) - 2];
 }
-createShape_0 = () => {
-    shape = [
-        [1, 1],
-        [1, 1]
-    ]
-}
-paintShape = () => {
+let paintShape = () => {
     for(let i = 0; i < shape.length; i ++){
         for(let j = 0; j < shape[i].length; j ++){
             if(shape[i][j]){
-                li[index[0] + i][index[1] + j].style.backgroundColor = color;
+                map_li[index[0] + i][index[1] + j].style.backgroundColor = color;
             }
         }
     }
 }
-clearPaintShape = () => {
+let clearPaintShape = () => {
     for(let i = 0; i < shape.length; i ++){
         for(let j = 0; j < shape[i].length; j ++){
             if(shape[i][j]){
-                li[index[0] + i][index[1] + j].style.backgroundColor = backColor;
+                map_li[index[0] + i][index[1] + j].style.backgroundColor = backColor;
             }
         }
     }
 }
-createShape = () => {    // index
-    console.log("创建一个方块")
+let startGame = () => {    // index
     initIndex();
     let random = parseInt(Math.random() * 7);
     shape = shapeSet[random];
     paintShape();
-}
-createShape();
 
-judgeDown = () => {
+    nextShape = parseInt(Math.random() * 7);
+    clearShowNextShape();
+    showNextShape();
+    console.log("创建一个方块:", random, nextShape)
+}
+let createShape = () => {    // index
+    initIndex();
+    shape = shapeSet[nextShape];
+    paintShape();
+    if(judgeDown()){
+        clearInterval(clock);
+        clock = null;
+        return
+    }
+    getScore();
+    random = nextShape;
+    nextShape = parseInt(Math.random() * 7);
+    // nextShape = 7
+    clearShowNextShape();
+    showNextShape();
+    console.log("创建一个方块:", random, nextShape)
+}
+
+// 判断是否消去
+function judgeClear(){
+    let i, j, flag = false;
+    for(i = mapSize.height - 1; i >= 0; i --){
+        for(j = 0; j < mapSize.width; j ++){
+            if(map[i][j]){
+                continue;
+            }else{
+                break;
+            }
+        }
+        if(j >= mapSize.width){
+            //消除
+            for(let m = 0; m < mapSize.width; m ++){
+                map[i][m] = false;
+                map_li[i][m].style.backgroundColor = "#fff";
+            }
+            flag = true;
+            for(let m = i; m > 0; m --){
+                for(let n = 0; n < mapSize.width; n ++){
+                    map[m][n] = map[m - 1][n];
+                    map_li[m][n].style.backgroundColor = map_li[m - 1][n].style.backgroundColor;
+                }
+            }
+        }
+    }
+    return flag;
+}
+
+// 判断障碍物
+function judgeDown(){
     // 先判断是否还能动
     for(let i = 0; i < shape.length; i ++){
         for(let j = 0; j < shape[i].length; j ++){
@@ -143,7 +221,7 @@ judgeDown = () => {
                 row = index[0] + i + 1;
                 col = index[1] + j;
                 if(row > mapSize.height - 1 || map[row][col]){    // 是否碰到下面的已存在的形状 
-                    console.log("stopDown")
+                    console.log("stopDown");
                     return true;
                 } 
             }
@@ -151,7 +229,7 @@ judgeDown = () => {
     }
     return false;
 }
-judgeLeft = () => {
+function judgeLeft(){
     // 先判断是否还能动
     for(let i = 0; i < shape.length; i ++){
         for(let j = 0; j < shape[i].length; j ++){
@@ -167,7 +245,7 @@ judgeLeft = () => {
     }
     return false;
 }
-judgeRight = () => {
+function judgeRight(){
     // 先判断是否还能动
     for(let i = 0; i < shape.length; i ++){
         for(let j = 0; j < shape[i].length; j ++){
@@ -185,19 +263,20 @@ judgeRight = () => {
 }
 
 // 方块移动
-move = () => {
-    console.log(index[0], index[1]);
+function move(){
+    // console.log(index[0], index[1]);
     // 先判断下方是否有障碍物
     if(judgeDown()){    // 有
         for(let i = 0; i < shape.length; i ++){
             for(let j = 0; j < shape[i].length; j ++){
                 if(shape[i][j]){
                     map[index[0] + i][index[1] + j] = true;
-                    li[index[0] + i][index[1] + j].style.backgroundColor = "#ff0";
+                    map_li[index[0] + i][index[1] + j].style.backgroundColor = "#ff0";
                 }
             }
         }
         createShape();
+        judgeClear();
         return;
     }
     //如果能动，就动
@@ -207,7 +286,7 @@ move = () => {
 }
 clock = setInterval(move, period);
 
-// 旋转
+// 旋转方块
 function rotateShape() {
     let tR = 0;
     let tC = 0;
@@ -217,7 +296,6 @@ function rotateShape() {
         rotateEdge(tR++, tC++, dR--, dC--);
     }
 }
- 
 function rotateEdge(tR, tC, dR, dC) {
     let times = dC - tC;
     let temp = 0;
@@ -230,12 +308,14 @@ function rotateEdge(tR, tC, dR, dC) {
     }
 }
 
+
+
 // 键盘监听
 document.addEventListener("keydown", function(e){
-    // console.log(e)
     if(e.keyCode == 37){     // 左
         if(judgeLeft()){
             return;
+
         }else{
             clearPaintShape();
             index[1] --;
@@ -259,11 +339,12 @@ document.addEventListener("keydown", function(e){
                 for(let j = 0; j < shape[i].length; j ++){
                     if(shape[i][j]){
                         map[index[0] + i][index[1] + j] = true;
-                        li[index[0] + i][index[1] + j].style.backgroundColor = "#ff0";
+                        map_li[index[0] + i][index[1] + j].style.backgroundColor = "#ff0";
                     }
                 }
             }
             createShape();
+            judgeClear();
             return;
         }else{
             clearPaintShape();
@@ -277,5 +358,8 @@ document.addEventListener("keydown", function(e){
         clearPaintShape();
         rotateShape();
         paintShape();
+    }
+    if(e.keyCode == 13){
+        startGame();
     }
 }, false);

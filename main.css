@@ -5,12 +5,17 @@
 }
 li{
     list-style: none;
+    float: left;
+    width: 30px;
+    height: 30px;
+    outline: 1px solid black;
 }
 
 .wrapper{
     background-color: rgb(62, 202, 27);
     border:10px solid rgb(34, 211, 235);
     border-radius: 1%;
+    margin: 10px auto;
 }
 
 .header{
@@ -31,17 +36,58 @@ li{
     background-color: #fff;
     float: left;
 }
-.left ul{
-    /* display: flex; */
-}
-.left ul li{
-    float: left;
-    width: 30px;
-    height: 30px;
-    outline: 1px solid black;
-}
 
 .right{
     background-color: chocolate;
     float: left;
+}
+.next-shape{
+    position: relative;
+    padding: 25px;
+    margin: 8px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 10px solid #fff;
+    border-radius: 1%;
+}
+.score{
+    position: relative;
+    padding: 25px;
+    margin: 10px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 10px solid #fff;
+    border-radius: 1%;
+}
+.next-character, .score-character1, .score-character2{
+    position: absolute;
+    color: #fff;
+    top: 40%;
+}
+.next-character{
+    left: 10px;
+}
+.score-character1{
+    left: 25px;
+}
+.score-character2{
+    right: 25px;
+}
+.get-score{
+    color: #fff;
+    font-size: 40px;
+    font-weight: bolder;
+}
+
+.rule{
+    padding: 20px 8px;
+    margin: 10px 8px;
+    border: 10px solid #fff;
+    border-radius: 1%;
+}
+.rule p{
+    color: #fff;
+    font-size: 20px;
 }
