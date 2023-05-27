@@ -31,7 +31,7 @@ let index = [];             // 形状起始位置：(行，列)
 
 //方块
 let color = "#f00";         // 方块颜色
-let backColor = "#fff";
+let backColor = "#fff";     // 方块背景颜色
 let nextShape = 0;          // 下一个方块形状
 let shape_li = [];
 let shapeSet = [
@@ -90,8 +90,6 @@ for(let i = 0; i < mapSize.height; i ++){          //创建地图
     for(let j = 0; j < mapSize.width; j ++){
         map_li[i][j] = document.createElement('li');
         map[i][j] = false;
-        // map_li[i][j].style.fontSize = "2px";
-        // map_li[i][j].innerText = (i + "-" + j);
         map_li[i][j].style.width = size;
         map_li[i][j].style.height = size;
         ul_map.appendChild(map_li[i][j])
@@ -198,7 +196,7 @@ function judgeClear(){
             //消除
             for(let m = 0; m < mapSize.width; m ++){
                 map[i][m] = false;
-                map_li[i][m].style.backgroundColor = "#fff";
+                map_li[i][m].style.backgroundColor = backColor;
             }
             flag = true;
             for(let m = i; m > 0; m --){
@@ -261,6 +259,21 @@ function judgeRight(){
     }
     return false;
 }
+function judgeRotate(shape){
+    for(let i = 0; i < shape.length; i ++){
+        for(let j = 0; j < shape[i].length; j ++){
+            if(shape[i][j]){     //形状有效位置
+                row = index[0] + i;
+                col = index[1] + j;
+                if(row > mapSize.height - 1 || row < 0 || col > mapSize.width - 1 || col < 0 || map[row][col]){    // 是否碰到下面的已存在的形状 
+                    console.log("stopRotate")
+                    return true;
+                }    
+            }
+        }
+    }
+    return false;
+}
 
 // 方块移动
 function move(){
@@ -287,16 +300,27 @@ function move(){
 clock = setInterval(move, period);
 
 // 旋转方块
-function rotateShape() {
+function deepClone(shape){
+    let temp = [];
+    for(let i = 0; i < shape.length; i ++)
+        temp[i] = shape[i].concat();
+    return temp;
+}
+function rotateShape(shape) {
+    let temp = deepClone(shape);
     let tR = 0;
     let tC = 0;
     let dR = shape.length - 1;
     let dC = shape[0].length - 1;
     while(tR < dR) {
-        rotateEdge(tR++, tC++, dR--, dC--);
+        rotateEdge(shape, tR++, tC++, dR--, dC--);
     }
+    if(judgeRotate(shape)){     //转后有障碍物，则回退到原来的样子
+        shape = temp;
+    }
+    return shape;
 }
-function rotateEdge(tR, tC, dR, dC) {
+function rotateEdge(shape, tR, tC, dR, dC) {
     let times = dC - tC;
     let temp = 0;
     for (let i = 0; i !== times; i++) {
@@ -356,7 +380,7 @@ document.addEventListener("keydown", function(e){
     if(e.keyCode == 84){     // 旋转
         console.log("旋转")
         clearPaintShape();
-        rotateShape();
+        shape = rotateShape(shape);
         paintShape();
     }
     if(e.keyCode == 13){
