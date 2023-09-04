@@ -1,7 +1,7 @@
 // 判断是否消去
 function judgeClear(){
     let i, j, flag = false;
-    for(i = mapSize.height - 1; i >= 0; i --){
+    for(i = 0; i < mapSize.height; i ++){
         for(j = 0; j < mapSize.width; j ++){
             if(map[i][j]){
                 continue;
